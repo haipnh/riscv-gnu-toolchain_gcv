@@ -136,6 +136,10 @@ jobs:
           DATESTAMP="$(date --utc '+%Y.%m.%d')"
           echo "Version: ${DATESTAMP}-nightly"
 
+          # Get commit hash from riscv-collab/riscv-gnu-toolchain
+          FULL_COMMIT_HASH=$(curl -s https://api.github.com/repos/riscv-collab/riscv-gnu-toolchain/commits/main | jq -r '.sha')
+          echo "FULL_COMMIT_HASH=${FULL_COMMIT_HASH}" >> $GITHUB_ENV
+
           # Setup Artifacts Directory
           ARTIFACTS_DIR="/mnt/artifacts/"
           sudo mkdir -p $ARTIFACTS_DIR
@@ -156,8 +160,8 @@ jobs:
           tag_name: ${{ env.DATESTAMP }}
           release_name: "Nightly: ${{ env.DATEWORD }}"
           body: |
-            **Automated Nightly Release**
-            ${{ env.DATESTAMP }}-nightly
+            **Build from riscv-collab/riscv-gnu-toolchain**
+            Commit: [${{ env.FULL_COMMIT_HASH }}](https://github.com/riscv-collab/riscv-gnu-toolchain/commit/${{ env.FULL_COMMIT_HASH }})
           draft: false
           prerelease: true
 
