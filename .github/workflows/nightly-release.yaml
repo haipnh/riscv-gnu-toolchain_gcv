@@ -61,6 +61,12 @@ jobs:
           - mode: uclibc
             compiler: llvm
     steps:
+      - name: Load target variables
+        uses: hashicorp/vault-action@v2
+        with:
+          path: target.yaml
+          exportEnv: true
+
       - name: Clone RISC-V GNU Toolchain
         uses: actions/checkout@v4
         with:
@@ -147,7 +153,8 @@ jobs:
           echo "ARTIFACTS_DIR=${ARTIFACTS_DIR}" >> $GITHUB_ENV
 
           # Get commit hash from riscv-collab/riscv-gnu-toolchain (actually querying commit hash at this point may cause a version glitch)
-          FULL_COMMIT_HASH=$(curl -s https://api.github.com/repos/riscv-collab/riscv-gnu-toolchain/commits/master | python3 -c "import sys, json; print(json.load(sys.stdin)['sha'])")
+          #FULL_COMMIT_HASH=$(curl -s https://api.github.com/repos/riscv-collab/riscv-gnu-toolchain/commits/master | python3 -c "import sys, json; print(json.load(sys.stdin)['sha'])")
+          FULL_COMMIT_HASH=${{ env.TARGET_COMMIT_HASH }}
           echo "FULL_COMMIT_HASH=${FULL_COMMIT_HASH}" >> $GITHUB_ENV
         shell: bash
 
