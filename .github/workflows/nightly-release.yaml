@@ -160,7 +160,7 @@ jobs:
           tag_name: ${{ env.DATESTAMP }}
           release_name: "Nightly: ${{ env.DATEWORD }}"
           body: |
-            **Build from riscv-collab/riscv-gnu-toolchain**
+            **Built from [riscv-collab/riscv-gnu-toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain) with Vector Extension enabled**
             Commit: [${{ env.FULL_COMMIT_HASH }}](https://github.com/riscv-collab/riscv-gnu-toolchain/commit/${{ env.FULL_COMMIT_HASH }})
           draft: false
           prerelease: true
