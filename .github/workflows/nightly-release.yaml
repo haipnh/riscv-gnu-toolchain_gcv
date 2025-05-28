@@ -2,7 +2,6 @@ name: RISC-V GNU Toolchain Builder for Vector Extension
 
 on:
   workflow_dispatch:
-    description: 'Build RISC-V GNU toolchain with vector extension support'
   # Keeping the schedule commented for reference
   # schedule:
   #   - cron:  '0 0 * * ?'
@@ -51,9 +50,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os:       [ubuntu-22.04, ubuntu-24.04]
-        mode:     [newlib, linux]
-        target:   [rv32gcv-ilp32d, rv64gcv-lp64d]
+        os:       [ubuntu-22.04]
+        mode:     [newlib]
+        target:   [rv32gcv-ilp32d]
         compiler: [gcc]
         exclude:
           - mode: musl
@@ -67,6 +66,13 @@ jobs:
         with:
           repository: riscv-collab/riscv-gnu-toolchain
           fetch-depth: 0
+
+      - name: Get commit hash from riscv-collab/riscv-gnu-toolchain
+        run: |
+          FULL_COMMIT_HASH=$(curl -s https://api.github.com/repos/riscv-collab/riscv-gnu-toolchain/commits/master | python3 -c "import sys, json; print(json.load(sys.stdin)['sha'])")
+          #SHORT_COMMIT_HASH=$(echo ${FULL_COMMIT_HASH::7})
+          echo "FULL_COMMIT_HASH=${FULL_COMMIT_HASH}" >> $GITHUB_ENV
+          #echo "SHORT_COMMIT_HASH=${SHORT_COMMIT_HASH}" >> $GITHUB_ENV
 
       - name: Remove unneeded frameworks to recover disk space
         run: sudo ./.github/cleanup-rootfs.sh
@@ -135,10 +141,6 @@ jobs:
         run: |
           DATESTAMP="$(date --utc '+%Y.%m.%d')"
           echo "Version: ${DATESTAMP}-nightly"
-
-          # Get commit hash from riscv-collab/riscv-gnu-toolchain
-          FULL_COMMIT_HASH=$(curl -s https://api.github.com/repos/riscv-collab/riscv-gnu-toolchain/commits/main | jq -r '.sha')
-          echo "FULL_COMMIT_HASH=${FULL_COMMIT_HASH}" >> $GITHUB_ENV
 
           # Setup Artifacts Directory
           ARTIFACTS_DIR="/mnt/artifacts/"
