@@ -70,6 +70,7 @@ jobs:
       - name: Get commit hash from riscv-collab/riscv-gnu-toolchain
         run: |
           FULL_COMMIT_HASH=$(curl -s https://api.github.com/repos/riscv-collab/riscv-gnu-toolchain/commits/master | python3 -c "import sys, json; print(json.load(sys.stdin)['sha'])")
+          echo $(FULL_COMMIT_HASH)
           #SHORT_COMMIT_HASH=$(echo ${FULL_COMMIT_HASH::7})
           echo "FULL_COMMIT_HASH=${FULL_COMMIT_HASH}" >> $GITHUB_ENV
           #echo "SHORT_COMMIT_HASH=${SHORT_COMMIT_HASH}" >> $GITHUB_ENV
@@ -81,6 +82,7 @@ jobs:
         run: sudo ./.github/setup-apt.sh
 
       - name: build toolchain
+        if: ${{ false }}
         run: |
           TARGET_TUPLE=($(echo ${{ matrix.target }} | tr "-" "\n"))
           BUILD_TOOLCHAIN="./configure --prefix=/mnt/riscv --with-arch=${TARGET_TUPLE[0]} --with-abi=${TARGET_TUPLE[1]}"
@@ -94,12 +96,14 @@ jobs:
           make -j $(nproc) ${{ matrix.mode }}
 
       - name: tarball build
+        if: ${{ false }}
         run: |
           du -s -h /mnt/riscv
           ./.github/dedup-dir.sh /mnt/riscv/
           XZ_OPT="-e -T0" tar cJvf riscv.tar.xz -C /mnt/ riscv/
 
       - name: generate prebuilt toolchain name
+        if: ${{ false }}
         id:   toolchain-name-generator
         run: |
           if [[ "${{ matrix.target }}" == *"32"* ]]; then BITS=32; else BITS=64; fi
@@ -115,7 +119,9 @@ jobs:
           esac
           echo "TOOLCHAIN_NAME=riscv$BITS-$MODE-${{ matrix.os }}-${{ matrix.compiler }}-nightly" >> $GITHUB_OUTPUT
 
-      - uses: actions/upload-artifact@v4
+      - name: upload build
+        if: ${{ false }}
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.toolchain-name-generator.outputs.TOOLCHAIN_NAME }}
           path: riscv.tar.xz
@@ -168,12 +174,14 @@ jobs:
           prerelease: true
 
       - name: Download Built Artifacts
+        if: ${{ false }}
         uses: actions/download-artifact@v4
         with:
           path: ${{ env.ARTIFACTS_DIR }}
 
       # IMPORTANT: Each artifact must only have one file
       - name: Designate Asset Names
+        if: ${{ false }}
         id: asset_names
         run: |
           ASSET_MATRIX=$(
@@ -202,6 +210,7 @@ jobs:
 
 
   upload-assets:
+    if: ${{ false }}
     needs: create-release
     runs-on: ubuntu-latest
     strategy:
