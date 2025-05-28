@@ -50,10 +50,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os:       [ubuntu-22.04]
-        mode:     [newlib]
-        target:   [rv32gcv-ilp32d]
-        compiler: [gcc]
+        os:       [ubuntu-22.04, ubuntu-24.04]
+        mode:     [newlib, linux, musl, uclibc]
+        target:   [rv32gc-ilp32d, rv64gc-lp64d]
+        compiler: [gcc, llvm]
         exclude:
           - mode: musl
             compiler: llvm
@@ -67,12 +67,6 @@ jobs:
           repository: riscv-collab/riscv-gnu-toolchain
           fetch-depth: 0
 
-      - name: Get commit hash from riscv-collab/riscv-gnu-toolchain
-        run: |
-          FULL_COMMIT_HASH=$(curl -s https://api.github.com/repos/riscv-collab/riscv-gnu-toolchain/commits/master | python3 -c "import sys, json; print(json.load(sys.stdin)['sha'])")
-          echo $FULL_COMMIT_HASH
-          echo "FULL_COMMIT_HASH=${FULL_COMMIT_HASH}" >> $GITHUB_ENV
-
       - name: Remove unneeded frameworks to recover disk space
         run: sudo ./.github/cleanup-rootfs.sh
 
@@ -80,7 +74,6 @@ jobs:
         run: sudo ./.github/setup-apt.sh
 
       - name: build toolchain
-        if: ${{ false }}
         run: |
           TARGET_TUPLE=($(echo ${{ matrix.target }} | tr "-" "\n"))
           BUILD_TOOLCHAIN="./configure --prefix=/mnt/riscv --with-arch=${TARGET_TUPLE[0]} --with-abi=${TARGET_TUPLE[1]}"
@@ -94,14 +87,12 @@ jobs:
           make -j $(nproc) ${{ matrix.mode }}
 
       - name: tarball build
-        if: ${{ false }}
         run: |
           du -s -h /mnt/riscv
           ./.github/dedup-dir.sh /mnt/riscv/
           XZ_OPT="-e -T0" tar cJvf riscv.tar.xz -C /mnt/ riscv/
 
       - name: generate prebuilt toolchain name
-        if: ${{ false }}
         id:   toolchain-name-generator
         run: |
           if [[ "${{ matrix.target }}" == *"32"* ]]; then BITS=32; else BITS=64; fi
@@ -118,7 +109,6 @@ jobs:
           echo "TOOLCHAIN_NAME=riscv$BITS-$MODE-${{ matrix.os }}-${{ matrix.compiler }}-nightly" >> $GITHUB_OUTPUT
 
       - name: upload build
-        if: ${{ false }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.toolchain-name-generator.outputs.TOOLCHAIN_NAME }}
@@ -155,6 +145,10 @@ jobs:
           echo "DATESTAMP=${DATESTAMP}" >> $GITHUB_ENV
           echo "DATEWORD=$(date --utc '+%B %d, %Y')" >> $GITHUB_ENV
           echo "ARTIFACTS_DIR=${ARTIFACTS_DIR}" >> $GITHUB_ENV
+
+          # Get commit hash from riscv-collab/riscv-gnu-toolchain (actually querying commit hash at this point may cause a version glitch)
+          FULL_COMMIT_HASH=$(curl -s https://api.github.com/repos/riscv-collab/riscv-gnu-toolchain/commits/master | python3 -c "import sys, json; print(json.load(sys.stdin)['sha'])")
+          echo "FULL_COMMIT_HASH=${FULL_COMMIT_HASH}" >> $GITHUB_ENV
         shell: bash
 
       - name: Create Release
@@ -172,14 +166,12 @@ jobs:
           prerelease: true
 
       - name: Download Built Artifacts
-        if: ${{ false }}
         uses: actions/download-artifact@v4
         with:
           path: ${{ env.ARTIFACTS_DIR }}
 
       # IMPORTANT: Each artifact must only have one file
       - name: Designate Asset Names
-        if: ${{ false }}
         id: asset_names
         run: |
           ASSET_MATRIX=$(
@@ -208,7 +200,6 @@ jobs:
 
 
   upload-assets:
-    if: ${{ false }}
     needs: create-release
     runs-on: ubuntu-latest
     strategy:
