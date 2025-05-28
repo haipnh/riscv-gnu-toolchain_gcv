@@ -2,6 +2,9 @@ name: RISC-V GNU Toolchain Builder for Vector Extension
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'target.yaml'
   # Keeping the schedule commented for reference
   # schedule:
   #   - cron:  '0 0 * * ?'
