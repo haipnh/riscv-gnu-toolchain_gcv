@@ -173,7 +173,8 @@ jobs:
             **Built from [riscv-collab/riscv-gnu-toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain) with Vector Extension enabled**
             Commit: [${{ env.FULL_COMMIT_HASH }}](https://github.com/riscv-collab/riscv-gnu-toolchain/commit/${{ env.FULL_COMMIT_HASH }})
           draft: false
-          prerelease: true
+          prerelease: false
+          make_latest: true
 
       - name: Download Built Artifacts
         uses: actions/download-artifact@v4
