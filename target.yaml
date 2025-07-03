@@ -1,2 +1,2 @@
 # Target commit hash for riscv-collab/riscv-gnu-toolchain repository
-TARGET_COMMIT_HASH: "master"  # Replace with specific commit hash when needed
+TARGET_COMMIT_HASH: "062ad358f7c73129d4239248b6441ccec6ca2231"  # Replace with specific commit hash when needed
