@@ -82,7 +82,6 @@ jobs:
         with:
           repository: riscv-collab/riscv-gnu-toolchain
           ref: ${{ steps.read-commit-hash.outputs.TARGET_COMMIT_HASH }}
-          path: riscv-gnu-toolchain
           fetch-depth: 0
 
       - name: Remove unneeded frameworks to recover disk space
@@ -93,7 +92,6 @@ jobs:
 
       - name: build toolchain
         run: |
-          cd riscv-gnu-toolchain
           TARGET_TUPLE=($(echo ${{ matrix.target }} | tr "-" "\n"))
           BUILD_TOOLCHAIN="./configure --prefix=/mnt/riscv --with-arch=${TARGET_TUPLE[0]} --with-abi=${TARGET_TUPLE[1]} --with-cmodel=medany"
           if [ "${{ matrix.compiler }}" == "llvm" ]; then # build toolchain with llvm
@@ -104,7 +102,6 @@ jobs:
           sudo mkdir /mnt/riscv
           sudo chown runner:runner /mnt/riscv
           make -j $(nproc) ${{ matrix.mode }}
-          cd ..
 
       - name: tarball build
         run: |
