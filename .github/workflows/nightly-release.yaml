@@ -70,10 +70,11 @@ jobs:
           wget -q "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" -O /usr/local/bin/yq
           chmod +x /usr/local/bin/yq
 
-      - name: Read target commit hash
+      - name: Download and parse target commit hash
         id: read-commit-hash
         run: |
-          TARGET_COMMIT_HASH=$(yq '.TARGET_COMMIT_HASH' ../../target.yaml | tr -d '"')
+          curl -sSL -o target.yaml https://raw.githubusercontent.com/haipnh/riscv-gnu-toolchain_gcv/refs/heads/master/target.yaml
+          TARGET_COMMIT_HASH=$(yq '.TARGET_COMMIT_HASH' target.yaml | tr -d '"')
           echo "TARGET_COMMIT_HASH=$TARGET_COMMIT_HASH" >> $GITHUB_OUTPUT
 
       - name: Clone RISC-V GNU Toolchain at target commit
@@ -155,8 +156,11 @@ jobs:
           wget -q "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" -O /usr/local/bin/yq
           chmod +x /usr/local/bin/yq
 
-      - name:  Run Configuration Commands
+      - name: Download and parse target commit hash
         run: |
+          curl -sSL -o target.yaml https://raw.githubusercontent.com/haipnh/riscv-gnu-toolchain_gcv/refs/heads/master/target.yaml
+          FULL_COMMIT_HASH=$(yq '.TARGET_COMMIT_HASH' target.yaml | tr -d '"')
+          echo "FULL_COMMIT_HASH=${FULL_COMMIT_HASH}" >> $GITHUB_ENV
           DATESTAMP="$(date --utc '+%Y.%m.%d')"
           echo "Version: ${DATESTAMP}-nightly"
 
@@ -169,10 +173,6 @@ jobs:
           echo "DATESTAMP=${DATESTAMP}" >> $GITHUB_ENV
           echo "DATEWORD=$(date --utc '+%B %d, %Y')" >> $GITHUB_ENV
           echo "ARTIFACTS_DIR=${ARTIFACTS_DIR}" >> $GITHUB_ENV
-
-          # Get commit hash from target.yaml
-          FULL_COMMIT_HASH=$(yq '.TARGET_COMMIT_HASH' ../../target.yaml | tr -d '"')
-          echo "FULL_COMMIT_HASH=${FULL_COMMIT_HASH}" >> $GITHUB_ENV
         shell: bash
 
       - name: Create Release
