@@ -64,17 +64,21 @@ jobs:
           - mode: uclibc
             compiler: llvm
     steps:
-      #- name: Load target variables
-      #  uses: hashicorp/vault-action@v2
-      #  with:
-      #    path: target.yaml
-      #    exportEnv: true
+      - name: Install yq
+        run: sudo apt-get update && sudo apt-get install -y yq
 
-      - name: Clone RISC-V GNU Toolchain
-        uses: actions/checkout@v4
-        with:
-          repository: riscv-collab/riscv-gnu-toolchain
-          fetch-depth: 0
+      - name: Read target commit hash
+        id: read-commit-hash
+        run: |
+          TARGET_COMMIT_HASH=$(yq '.TARGET_COMMIT_HASH' ../../target.yaml | tr -d '"')
+          echo "TARGET_COMMIT_HASH=$TARGET_COMMIT_HASH" >> $GITHUB_OUTPUT
+
+      - name: Clone RISC-V GNU Toolchain at target commit
+        run: |
+          git clone https://github.com/riscv-collab/riscv-gnu-toolchain.git
+          cd riscv-gnu-toolchain
+          git checkout ${{ steps.read-commit-hash.outputs.TARGET_COMMIT_HASH }}
+          cd ..
 
       - name: Remove unneeded frameworks to recover disk space
         run: sudo ./.github/cleanup-rootfs.sh
@@ -84,8 +88,9 @@ jobs:
 
       - name: build toolchain
         run: |
+          cd riscv-gnu-toolchain
           TARGET_TUPLE=($(echo ${{ matrix.target }} | tr "-" "\n"))
-          BUILD_TOOLCHAIN="./configure --prefix=/mnt/riscv --with-arch=${TARGET_TUPLE[0]} --with-abi=${TARGET_TUPLE[1]}"
+          BUILD_TOOLCHAIN="./configure --prefix=/mnt/riscv --with-arch=${TARGET_TUPLE[0]} --with-abi=${TARGET_TUPLE[1]} --with-cmodel=medany"
           if [ "${{ matrix.compiler }}" == "llvm" ]; then # build toolchain with llvm
             $BUILD_TOOLCHAIN --enable-llvm
           else
@@ -94,6 +99,7 @@ jobs:
           sudo mkdir /mnt/riscv
           sudo chown runner:runner /mnt/riscv
           make -j $(nproc) ${{ matrix.mode }}
+          cd ..
 
       - name: tarball build
         run: |
@@ -140,6 +146,9 @@ jobs:
           sudo rm -rf /usr/local/lib/android
           echo "-- After --"
           df -h
+      - name: Install yq
+        run: sudo apt-get update && sudo apt-get install -y yq
+
       - name:  Run Configuration Commands
         run: |
           DATESTAMP="$(date --utc '+%Y.%m.%d')"
@@ -155,9 +164,8 @@ jobs:
           echo "DATEWORD=$(date --utc '+%B %d, %Y')" >> $GITHUB_ENV
           echo "ARTIFACTS_DIR=${ARTIFACTS_DIR}" >> $GITHUB_ENV
 
-          # Get commit hash from riscv-collab/riscv-gnu-toolchain (actually querying commit hash at this point may cause a version glitch)
-          FULL_COMMIT_HASH=$(curl -s https://api.github.com/repos/riscv-collab/riscv-gnu-toolchain/commits/master | python3 -c "import sys, json; print(json.load(sys.stdin)['sha'])")
-          #FULL_COMMIT_HASH=${{ env.TARGET_COMMIT_HASH }}
+          # Get commit hash from target.yaml
+          FULL_COMMIT_HASH=$(yq '.TARGET_COMMIT_HASH' ../../target.yaml | tr -d '"')
           echo "FULL_COMMIT_HASH=${FULL_COMMIT_HASH}" >> $GITHUB_ENV
         shell: bash
 
