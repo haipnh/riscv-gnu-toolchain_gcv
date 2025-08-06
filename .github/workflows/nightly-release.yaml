@@ -78,11 +78,12 @@ jobs:
           echo "TARGET_COMMIT_HASH=$TARGET_COMMIT_HASH" >> $GITHUB_OUTPUT
 
       - name: Clone RISC-V GNU Toolchain at target commit
-        run: |
-          git clone https://github.com/riscv-collab/riscv-gnu-toolchain.git
-          cd riscv-gnu-toolchain
-          git checkout ${{ steps.read-commit-hash.outputs.TARGET_COMMIT_HASH }}
-          cd ..
+        uses: actions/checkout@v4
+        with:
+          repository: riscv-collab/riscv-gnu-toolchain
+          ref: ${{ steps.read-commit-hash.outputs.TARGET_COMMIT_HASH }}
+          path: riscv-gnu-toolchain
+          fetch-depth: 0
 
       - name: Remove unneeded frameworks to recover disk space
         run: sudo ./.github/cleanup-rootfs.sh
