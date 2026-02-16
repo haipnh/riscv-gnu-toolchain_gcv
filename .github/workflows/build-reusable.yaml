@@ -17,7 +17,7 @@ on:
       target:
         description: "Target list"
         type: string
-        default: '["rv32gc-ilp32d","rv64gc-lp64d"]'
+        default: '["rv32gcv-ilp32d","rv64gcv-lp64d"]'
       compiler:
         description: "Compiler list"
         type: string
