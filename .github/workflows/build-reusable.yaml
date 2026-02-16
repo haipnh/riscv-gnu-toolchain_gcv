@@ -103,13 +103,9 @@ jobs:
       key: ${{ steps.keygen.outputs.smcache_key }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Checkout target commit
-        if: inputs.commit_hash != ''
-        run: |
-          echo "Checking out specific commit: ${{ inputs.commit_hash }}"
-          git fetch origin ${{ inputs.commit_hash }}
-          git checkout ${{ inputs.commit_hash }}
+        with:
+          ref: ${{ inputs.commit_hash != '' && inputs.commit_hash || github.ref }}
+          fetch-depth: 0  # Need full history to access any commit
 
       - name: Remove unneeded frameworks to recover disk space
         run: sudo ./.github/cleanup-rootfs.sh
@@ -168,13 +164,9 @@ jobs:
       toolchain-name: ${{ steps.toolchain-name-generator.outputs.TOOLCHAIN_NAME }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Checkout target commit
-        if: inputs.commit_hash != ''
-        run: |
-          echo "Checking out specific commit: ${{ inputs.commit_hash }}"
-          git fetch origin ${{ inputs.commit_hash }}
-          git checkout ${{ inputs.commit_hash }}
+        with:
+          ref: ${{ inputs.commit_hash != '' && inputs.commit_hash || github.ref }}
+          fetch-depth: 0  # Full history needed to checkout specific commits
 
       - name: Remove unneeded frameworks to recover disk space
         run: sudo ./.github/cleanup-rootfs.sh
