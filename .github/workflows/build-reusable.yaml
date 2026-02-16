@@ -113,7 +113,7 @@ jobs:
 
       - name: Generate submodule cache key
         id: keygen
-        run: 
+        run: |
           # Include commit hash in cache key if provided
           COMMIT_SUFFIX=""
           if [ -n "${{ inputs.commit_hash }}" ]; then
