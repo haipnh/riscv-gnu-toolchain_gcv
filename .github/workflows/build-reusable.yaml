@@ -3,6 +3,10 @@ name: Build
 on:
   workflow_call:
     inputs:
+      commit_hash:
+        description: "Specific commit hash to checkout from riscv-gnu-toolchain"
+        type: string
+        required: true
       artifact-name:
         description: "Named identifier for the artifact, optional"
         type: string
@@ -100,12 +104,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout target commit
+        if: inputs.commit_hash != ''
+        run: |
+          echo "Checking out specific commit: ${{ inputs.commit_hash }}"
+          git fetch origin ${{ inputs.commit_hash }}
+          git checkout ${{ inputs.commit_hash }}
+
       - name: Remove unneeded frameworks to recover disk space
         run: sudo ./.github/cleanup-rootfs.sh
 
       - name: Generate submodule cache key
         id: keygen
-        run: echo "smcache_key=smcache-$(printf $(git submodule | sha1sum))" >> $GITHUB_OUTPUT
+        run: 
+          # Include commit hash in cache key if provided
+          COMMIT_SUFFIX=""
+          if [ -n "${{ inputs.commit_hash }}" ]; then
+            COMMIT_SUFFIX="-${{ inputs.commit_hash }}"
+          fi
+          echo "smcache_key=smcache${COMMIT_SUFFIX}-$(printf $(git submodule | sha1sum))" >> $GITHUB_OUTPUT
 
       - name: Setup submodule cache
         id: smcache
@@ -151,6 +168,13 @@ jobs:
       toolchain-name: ${{ steps.toolchain-name-generator.outputs.TOOLCHAIN_NAME }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Checkout target commit
+        if: inputs.commit_hash != ''
+        run: |
+          echo "Checking out specific commit: ${{ inputs.commit_hash }}"
+          git fetch origin ${{ inputs.commit_hash }}
+          git checkout ${{ inputs.commit_hash }}
 
       - name: Remove unneeded frameworks to recover disk space
         run: sudo ./.github/cleanup-rootfs.sh
