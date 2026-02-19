@@ -13,13 +13,13 @@ on:
       os:
         description: "OS list"
         type: string
-        # default: '["ubuntu-22.04","ubuntu-24.04"]'
-        default: '["ubuntu-24.04"]'
+        default: '["ubuntu-22.04","ubuntu-24.04"]'
+        # default: '["ubuntu-24.04"]'
       mode:
         description: "Mode list"
         type: string
-        # default: '["newlib","linux","musl","uclibc"]'
-        default: '["newlib","linux"]'
+        default: '["newlib","linux","musl","uclibc"]'
+        # default: '["newlib","linux"]'
       target:
         description: "Target list"
         type: string
