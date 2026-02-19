@@ -73,7 +73,7 @@ jobs:
       commit_hash: ${{ needs.activity-check.outputs.commit_hash }}
 
   create-release:
-    needs: [build]
+    needs: [build, activity-check]
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -106,10 +106,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.metadata.outputs.datestamp }}
-          name: "Nightly: ${{ steps.metadata.outputs.dateword }}"
+          name: "Release: ${{ steps.metadata.outputs.dateword }}"
           body: |
-            **Automated Nightly Release**
-            ${{ steps.metadata.outputs.datestamp }}-nightly
+            **Built from [riscv-collab/riscv-gnu-toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain) with Vector Extension enabled**
+            Commit: [${{ needs.activity-check.outputs.commit_hash }}](https://github.com/riscv-collab/riscv-gnu-toolchain/commit/${{ needs.activity-check.outputs.commit_hash }})
           draft: false
           files: |
             ${{ env.ARTIFACTS_DIR }}/*
